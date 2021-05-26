@@ -1,7 +1,6 @@
 
   
 # Load in Packages and Data; Set seed
-
 library(tidyverse)
 library(ggplot2)
 library(naniar)
@@ -33,9 +32,7 @@ miss_var_table(train)
 # Looking at important numerical vairables 
   plot_corr <- train %>% 
     mutate(hi_int_prncp_pd = as.numeric(hi_int_prncp_pd)) %>% 
-    select(c(hi_int_prncp_pd, 
-             acc_now_delinq, 
-             acc_open_past_24mths, 
+    select(c(hi_int_prncp_pd, acc_now_delinq, acc_open_past_24mths, 
              annual_inc, 
              avg_cur_bal, 
              bc_util, 
@@ -55,23 +52,28 @@ miss_var_table(train)
                        tl.col = "black", col = "black", 
                        tl.cex = 0.5) 
   
- 
+
+  # Looking at important categorical variables
+  
+
   
   
+# Folds  
 loan_folds <- vfold_cv(data = train, v = 5, repeats = 3, strata = hi_int_prncp_pd)
   
-  #recipe
+# Recipe
   loan_rf_recipe <- recipe(hi_int_prncp_pd ~ int_rate + loan_amnt + out_prncp_inv 
                            + application_type + grade + sub_grade + term, data = train) %>% 
     step_other(all_nominal(), -all_outcomes(), threshold = 0.1) %>% 
     step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE) %>% 
     step_normalize(all_predictors(), -all_outcomes()) %>% 
     step_zv(all_predictors(), -all_outcomes())
-  
+
+# Prep and Bake  
   prep(loan_rf_recipe) %>% 
     bake(new_data = NULL)
   
-  #define model
+# Define model
   rf_model <- rand_forest(mode = "classification",
                           min_n = tune(),
                           mtry = tune()) %>% 
@@ -81,35 +83,35 @@ loan_folds <- vfold_cv(data = train, v = 5, repeats = 3, strata = hi_int_prncp_p
     add_model(rf_model) %>% 
     add_recipe(loan_rf_recipe)
   
-  #set up tuning grid
+# Set up tuning grid
   rf_params <- parameters(rf_model) %>% 
     update(mtry = mtry(range = c(2, 10)))
   
-  # define tuning grid
+# Define tuning grid
   rf_grid <- grid_regular(rf_params, levels = 3)
   
-  # workflow ----
+# Workflow 
   rf_tuned <-  rf_workflow %>% 
     tune_grid(loan_folds, grid = rf_grid)
   write_rds(rf_tuned, "rf_results.rds")
   
-  save(rf_tuned, rf_workflow, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/data/rf_tuned.rds")
+# Save objects
+save(rf_tuned, rf_workflow, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/data/rf_tuned.rds")
   
-  #results
-  rf_workflow_tuned <- rf_workflow %>% 
+# Results
+
+rf_workflow_tuned <- rf_workflow %>% 
     finalize_workflow(select_best(rf_tuned, metric = "accuracy"))
   
-  rf_results <- fit(rf_workflow_tuned, train)
+rf_results <- fit(rf_workflow_tuned, train)
   
-  final_rf_results <- rf_results %>%
+final_rf_results <- rf_results %>%
     predict(new_data = test) %>%
-    bind_cols(test %>%
-                select(id)) %>%
+    bind_cols(test %>% select(id)) %>%
     mutate(Category = .pred_class,
            Id = id) %>%
     select(Id, Category)
   
-  final_rf_results
-  
+# Save for Submission
   write_csv(final_rf_results, "rf_output.csv")
   
