@@ -15,6 +15,7 @@ test <- read_csv("data/test.csv") %>%
 
 set.seed(123)
 
+
 # Data checks ----
 
 # Missingness
@@ -23,11 +24,19 @@ vis_miss(train)
 miss_var_table(train)
 
 
-# Visualizing Outcome Skew
+# Visualizing Outcome Distribution
 # Most of the repayments were made towards principal, not interest 
   train %>% 
   ggplot(aes(hi_int_prncp_pd)) +
   geom_histogram(stat = "count") 
+  
+  
+# By state
+  train %>%
+    group_by(addr_state) %>%
+    ggplot(aes(hi_int_prncp_pd)) +
+    geom_histogram(stat = "count") +
+    facet_wrap(~ addr_state)
   
 # Looking at important numerical vairables 
   plot_corr <- train %>% 
@@ -53,17 +62,33 @@ miss_var_table(train)
                        tl.cex = 0.5) 
   
 
-  # Looking at important categorical variables
-  
-
-  
-  
+# Looking at important categorical variables and only including the 
+# ones where there is st
+ 
+chisq.test(table(train$addr_state, train$hi_int_prncp_pd))
+chisq.test(table(train$application_type, train$hi_int_prncp_pd))
+chisq.test(table(train$emp_length, train$hi_int_prncp_pd))
+chisq.test(table(train$emp_title, train$hi_int_prncp_pd))
+chisq.test(table(train$grade, train$hi_int_prncp_pd))
+chisq.test(table(train$home_ownership, train$hi_int_prncp_pd))
+chisq.test(table(train$initial_list_status, train$hi_int_prncp_pd))
+chisq.test(table(train$last_credit_pull_d, train$hi_int_prncp_pd))
+chisq.test(table(train$purpose, train$hi_int_prncp_pd))
+chisq.test(table(train$sub_grade, train$hi_int_prncp_pd))
+chisq.test(table(train$term, train$hi_int_prncp_pd))
+chisq.test(table(train$verification_status, train$hi_int_prncp_pd))
+   
+                       
+                       
+                       
+                  
 # Folds  
 loan_folds <- vfold_cv(data = train, v = 5, repeats = 3, strata = hi_int_prncp_pd)
   
 # Recipe
   loan_rf_recipe <- recipe(hi_int_prncp_pd ~ int_rate + loan_amnt + out_prncp_inv 
-                           + application_type + grade + sub_grade + term, data = train) %>% 
+                           + application_type + grade + initial_list_status + last_credit_pull_d +
+                             purpose + sub_grade + term + verification_status, data = train) %>% 
     step_other(all_nominal(), -all_outcomes(), threshold = 0.1) %>% 
     step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE) %>% 
     step_normalize(all_predictors(), -all_outcomes()) %>% 
