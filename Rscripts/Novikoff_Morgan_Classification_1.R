@@ -6,11 +6,11 @@ library(ggplot2)
 library(naniar)
 library(tidymodels)
 
-train <- read_csv("data/train.csv") %>%
+train <- read_csv("~/Desktop/Stat_301-3/classification_kaggle_comp/data/train.csv") %>%
   janitor::clean_names() %>%
   mutate(hi_int_prncp_pd = factor(hi_int_prncp_pd))
 
-test <- read_csv("data/test.csv") %>%
+test <- read_csv("~/Desktop/Stat_301-3/classification_kaggle_comp/data/test.csv") %>%
   janitor::clean_names()
 
 set.seed(123)
@@ -129,6 +129,7 @@ rf_workflow_tuned <- rf_workflow %>%
     finalize_workflow(select_best(rf_tuned, metric = "accuracy"))
   
 rf_results <- fit(rf_workflow_tuned, train)
+save(rf_results, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/model_info/rf_results.rds")
   
 final_rf_results <- rf_results %>%
     predict(new_data = test) %>%
