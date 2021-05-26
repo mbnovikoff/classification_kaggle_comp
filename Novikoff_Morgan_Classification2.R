@@ -123,7 +123,7 @@ bt_tuned <-  bt_workflow %>%
 write_rds(bt_tuned, "bt_results.rds")
 
 # Save objects
-save(bt_tuned, bt_workflow, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/data/bt_tuned.rds")
+save(bt_tuned, bt_workflow, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/model_info/bt_tuned.rds")
 
 # Results
 

@@ -121,7 +121,7 @@ loan_folds <- vfold_cv(data = train, v = 5, repeats = 3, strata = hi_int_prncp_p
   write_rds(rf_tuned, "rf_results.rds")
   
 # Save objects
-save(rf_tuned, rf_workflow, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/data/rf_tuned.rds")
+save(rf_tuned, rf_workflow, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/model_info/rf_tuned.rds")
   
 # Results
 
