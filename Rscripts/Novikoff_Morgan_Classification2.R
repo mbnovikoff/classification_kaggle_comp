@@ -5,12 +5,14 @@ library(ggplot2)
 library(naniar)
 library(tidymodels)
 
-train <- read_csv("data/train.csv") %>%
+
+train <- read_csv("~/Desktop/Stat_301-3/classification_kaggle_comp/data/train.csv") %>%
   janitor::clean_names() %>%
   mutate(hi_int_prncp_pd = factor(hi_int_prncp_pd))
 
-test <- read_csv("data/test.csv") %>%
+test <- read_csv("~/Desktop/Stat_301-3/classification_kaggle_comp/data/test.csv") %>%
   janitor::clean_names()
+
 
 set.seed(123)
 
@@ -131,6 +133,8 @@ bt_workflow_tuned <- bt_workflow %>%
   finalize_workflow(select_best(bt_tuned, metric = "accuracy"))
 
 bt_results <- fit(bt_workflow_tuned, train)
+save(bt_results, file = "~/Desktop/Stat_301-3/classification_kaggle_comp/model_info/bt_results.rds")
+
 
 final_bt_results <- bt_results %>%
   predict(new_data = test) %>%
